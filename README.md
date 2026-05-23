@@ -6,7 +6,7 @@
 **JePT** = **JE**PA + Lite**PT**.
 
 A pure-PyTorch point-cloud **segmentation + 3D detection** pipeline that mirrors
-[`pyLitePT`]([(https://github.com/Md-aliy7/pyLitePT)]) but obtains its backbone through **JEPA
+[`pyLitePT`]([https://github.com/Md-aliy7/pyLitePT]) but obtains its backbone through **JEPA
 self-supervised pretraining** instead of supervised training.
 
 > **Why.** In pyLitePT every scene must be fully annotated (per-point labels +
