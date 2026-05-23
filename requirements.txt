@@ -1,0 +1,24 @@
+# JePT — JEPA-pretrained LitePT point-cloud pipeline
+# Install:  pip install -r requirements.txt
+
+# --- core deep learning ----------------------------------------------
+torch
+torchvision           # used by detection NMS (torchvision.ops.nms)
+numpy
+timm                  # DropPath and layer utilities used by LitePT
+
+# --- utilities -------------------------------------------------------
+addict                # Dict subclass for the Point structure
+tqdm
+scipy                 # box / geometry utilities
+colorhash             # serialization-debug colouring
+
+# --- visualization (Custom/visualize.py) -----------------------------
+open3d                # point-cloud rendering + PLY export
+vispy                 # interactive GUI canvases
+PySide6               # GUI window
+
+# --- optional GPU acceleration (CPU fallbacks ship in backend_cpu/) ---
+# spconv-cu120        # NVIDIA sparse convolution (fastest)
+# flash-attn          # fastest attention (Linux + CUDA)
+# torch-scatter       # native scatter ops

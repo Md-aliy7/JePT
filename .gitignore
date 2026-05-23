@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# generated datasets (created by the demo / data tools)
+data_demo/
+data_shapes3d/
+data_unlabeled/
+data_labeled/
+_smoke/
+
+# experiment outputs / checkpoints / logs
+exp/
+exp_demo/
+exp_shapes3d/
+exp_*/
+*.pth
+*_log.txt
+
+# dataset caches written by CustomDataset
+**/mean_sizes_cache.json
+**/class_weights_cache.json
+**/unlabeled_manifest.json
+**/dataset_status.json
+
+# OS
+.DS_Store
+Thumbs.db
