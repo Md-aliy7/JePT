@@ -25,18 +25,21 @@ SOFTWARE.
 This repository bundles or builds on several open-source projects, each used
 under their original permissive licenses (all MIT). Full attributions:
 
-* LitePT — © 2025 Photogrammetry and Remote Sensing Lab (MIT).
-  Reused in `models/litept/` verbatim.
+* LitePT — paper: Yue, Robert, Wang, Hong, Wegner, Rupprecht, Schindler
+  (ETH Zurich / Oxford / UZH). "LitePT: Lighter Yet Stronger Point Transformer",
+  arXiv:2512.13689, CVPR 2026. Code MIT, © Photogrammetry and Remote Sensing
+  Lab (github.com/prs-eth/LitePT). Reused verbatim in `models/litept/`.
 
-* pyLitePT — © 2025 Photogrammetry and Remote Sensing Lab (MIT).
-  Reused in `pcdet_lite/`, `models/detection.py`, `models/modules.py`,
-  `backend_cpu/`, `libs/`, `metrics/`, `utils/`, `hybrid_backend.py`, and
-  adapted in `models/unified.py`, `data/labeled_dataset.py`.
+* pyLitePT — MIT, © Photogrammetry and Remote Sensing Lab. Reused in
+  `pcdet_lite/`, `models/detection.py`, `models/modules.py`, `backend_cpu/`,
+  `libs/`, `metrics/`, `utils/`, `hybrid_backend.py`, and adapted in
+  `models/unified.py`, `data/labeled_dataset.py`.
 
-* Point-JEPA — © 2023 Karim Abou Zeid (MIT).
-  SSL recipe reference. `jepa/ema.py` adapted from Point-JEPA's `EMA.py`.
+* Point-JEPA — paper: Ayumu Saito, Prachi Kudeshia, Jiju Poovvancheri.
+  "Point-JEPA: A Joint Embedding Predictive Architecture for Self-Supervised
+  Learning on Point Cloud", arXiv:2404.16432. Reference-implementation code
+  MIT, © 2023 Karim Abou Zeid. `jepa/ema.py` adapted from that implementation.
 
-* labelCloud — bundled under `labelCloud/`, integrated under MIT for this
-  repository by arrangement with the upstream maintainer (Christoph Sager,
-  github.com/ch-sa/labelCloud). The labelCloud subdirectory's own LICENSE
-  documents this.
+* labelCloud — original work by Christoph Sager
+  (github.com/ch-sa/labelCloud). Bundled under `labelCloud/` and re-released
+  under MIT for this repository (see `labelCloud/LICENSE`).

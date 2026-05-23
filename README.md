@@ -240,12 +240,12 @@ JePT is released under the [MIT License](LICENSE).
 The repository bundles and builds on several open-source projects, all under
 permissive licenses (MIT). Full credit:
 
-| Project | Role in JePT | Original authors |
+| Project | Role in JePT | Authors / copyright |
 |---|---|---|
-| [**LitePT**](https://github.com/PRSLab/LitePT) | Backbone — reused verbatim in `models/litept/` | Photogrammetry and Remote Sensing Lab |
-| [**pyLitePT**](https://github.com/PRSLab/pyLitePT) | Detection head, data loader, post-processing — `pcdet_lite/`, `models/`, `backend_cpu/`, `libs/`, `metrics/`, `utils/` | Photogrammetry and Remote Sensing Lab |
-| [**Point-JEPA**](https://github.com/kabouzeid/point-jepa) | Self-supervised recipe + EMA module (`jepa/ema.py` adapted) | Karim Abou Zeid |
-| [**labelCloud**](https://github.com/ch-sa/labelCloud) | 3D annotation GUI (`labelCloud/`) | Christoph Sager |
+| [**LitePT**](https://github.com/prs-eth/LitePT) ([paper](https://arxiv.org/abs/2512.13689)) | Backbone — reused verbatim in `models/litept/` | Yuanwen Yue, Damien Robert, Jianyuan Wang, Sunghwan Hong, Jan Dirk Wegner, Christian Rupprecht, Konrad Schindler (ETH Zurich / Oxford / UZH). MIT, © Photogrammetry and Remote Sensing Lab. |
+| **pyLitePT** | Detection head, data loader, post-processing, CPU backend — reused in `pcdet_lite/`, `models/detection.py`, `models/modules.py`, `backend_cpu/`, `libs/`, `metrics/`, `utils/`, `hybrid_backend.py` | MIT, © Photogrammetry and Remote Sensing Lab. |
+| **Point-JEPA** ([paper](https://arxiv.org/abs/2404.16432)) | Self-supervised recipe for point clouds; `jepa/ema.py` adapted from the reference implementation | Project authors (paper): Ayumu Saito, Prachi Kudeshia, Jiju Poovvancheri. Reference-implementation code MIT, © Karim Abou Zeid. |
+| [**labelCloud**](https://github.com/ch-sa/labelCloud) | 3D annotation GUI (`labelCloud/`) | Christoph Sager. Re-released under MIT in this repository (see `labelCloud/LICENSE`). |
 
 Scientific references (algorithm design): [I-JEPA](https://arxiv.org/abs/2301.08243),
 [DINOv3](https://ai.meta.com/dinov3), [Sonata](https://arxiv.org/abs/2503.16429),

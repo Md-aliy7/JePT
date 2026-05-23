@@ -14,9 +14,9 @@ justifies.
    Used in: [jepa/jepa_model.py](jepa/jepa_model.py),
    [jepa/predictor.py](jepa/predictor.py), [jepa/sampler.py](jepa/sampler.py).
 
-2. **Point-JEPA** — Saito, Poovvancheri. *Point-JEPA: A Joint Embedding
-   Predictive Architecture for Self-Supervised Learning on Point Cloud.*
-   arXiv:2404.16432 (2024).
+2. **Point-JEPA** — Saito, Kudeshia, Poovvancheri. *Point-JEPA: A Joint
+   Embedding Predictive Architecture for Self-Supervised Learning on Point
+   Cloud.* arXiv:2404.16432 (2024).
    → Justifies: JEPA adapted to point clouds, the iterative-nearest-neighbour
    token *sequencer*, contiguous-block context/target sampling, EMA `tau`
    ramp (0.9998→0.99999), smooth-L1 `beta=2`, staged encoder unfreezing for
@@ -45,11 +45,17 @@ justifies.
 
 ## Backbone
 
-6. **pyLitePT / LitePT** — the realtime point-cloud transformer backbone JePT
-   reuses unchanged (`models/litept/litept.py`). LitePT builds on the Point
-   Transformer V3 line of work: Wu et al. *Point Transformer V3: Simpler,
-   Faster, Stronger.* CVPR 2024. arXiv:2312.10035 (serialized attention,
-   grid pooling, the `Point` data structure).
+6. **LitePT** — Yue, Robert, Wang, Hong, Wegner, Rupprecht, Schindler
+   (ETH Zurich / Oxford / UZH). *LitePT: Lighter Yet Stronger Point
+   Transformer.* CVPR 2026. arXiv:2512.13689. github.com/prs-eth/LitePT.
+   → The realtime point-cloud transformer backbone JePT reuses unchanged
+   (`models/litept/litept.py`). LitePT builds on Wu et al. *Point Transformer
+   V3: Simpler, Faster, Stronger.* CVPR 2024. arXiv:2312.10035 (serialized
+   attention, grid pooling, the `Point` data structure). **pyLitePT** is the
+   pure-Python pipeline (segmentation + detection heads, data loader,
+   post-processing) built on LitePT by the same lab — JePT reuses its
+   `pcdet_lite/`, `models/detection.py`, `backend_cpu/`, `libs/`, `metrics/`,
+   `utils/`, and `hybrid_backend.py` verbatim.
 
 ## Cross-validation references (point-cloud SSL on PTv3)
 
