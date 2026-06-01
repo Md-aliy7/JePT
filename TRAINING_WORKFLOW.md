@@ -102,6 +102,8 @@ state-dict inside is the pretrained backbone.
 | `FREEZE_MODE` | `linear_probe` / `full_finetune` / `staged_unfreeze` (default) |
 | `FREEZE_EPOCHS` | staged mode: epochs frozen before unfreezing |
 | `BACKBONE_LR_SCALE` | backbone LR = `LEARNING_RATE × this` |
+| `USE_DUAL_PATH_UNIFIED` | `False` = single multi-stage backbone shared by seg+det (FULL JEPA transfer to both heads). `True` = pyLitePT's best-perf recipe: multi-stage for seg, single-stage for det (better small-object detection; det branch only gets PARTIAL transfer — its input embedding — and trains the rest fresh). |
+| `SEED` | Python / NumPy / torch (CPU+CUDA) seed for reproducible runs. cuDNN set deterministic. |
 | `RESUME` | `True` resumes model weights + epoch from `<RESULTS_DIR>/last.pth` |
 
 **Freeze-mode guidance:**
@@ -114,10 +116,17 @@ state-dict inside is the pretrained backbone.
 python -m Custom.run_finetune
 ```
 
-**What to watch**: `seg_loss` / `det_loss` decrease; `val_seg_acc` increases.
-Output: `RESULTS_DIR/best.pth` (best val accuracy) and `last.pth`. Checkpoints
-store `meta` (variant, class names, grid size) so downstream tools rebuild the
-exact model.
+**What to watch**:
+- `seg_loss` / `det_loss` decrease per epoch.
+- `val_seg_acc` increases (segmentation accuracy on the val split).
+- `val_det_mAP50` increases (**real 3D-IoU mAP@0.5** — the same metric pyLitePT
+  uses, so JePT detection numbers are directly comparable).
+
+Output: `RESULTS_DIR/best.pth` (best **combined `val_seg_acc + val_det_mAP50`**
+— so a checkpoint is not frozen while detection is still converging) and
+`last.pth`. Checkpoints store `meta` (variant, class names, channels, grid
+size, dual-path flag, data path) so downstream tools rebuild the exact model
+without manual config editing.
 
 ---
 
@@ -138,7 +147,7 @@ python Custom/visualize.py --save                       # headless: writes colou
 | command | what it does |
 |---|---|
 | `python -m Custom.smoke_test` | end-to-end correctness check on tiny synthetic data (~1 min) |
-| `python -m Custom.run_shapes3d_demo` | **recommended** — real SSL→supervised run on Shapes3D, prints pretrained-vs-scratch test mIoU |
+| `python -m Custom.run_shapes3d_demo` | **recommended** — real SSL → supervised run on Shapes3D (200 unlabeled / 80 labelled / 30 unseen test, dual-path), prints pretrained-vs-scratch test mIoU + mAP@{0.25, 0.5, 0.75} |
 | `python -m Custom.run_real_demo` | same idea on procedural indoor scenes |
 | `python -m Custom.run_lowlabel_ablation` | pretrained vs scratch as the labeled-scene budget shrinks |
 
@@ -161,6 +170,16 @@ Append `--quick` to `run_shapes3d_demo` / `run_real_demo` for a fast dry run.
   ~5–10 % labeled scenes for good detection, less for segmentation only.
 - **Pretrain on everything.** Stage 1 ignores labels, so point it at your full
   scan collection — more unlabeled data → better representations.
+- **Single-path vs dual-path.** Set `USE_DUAL_PATH_UNIFIED=True` (pyLitePT's
+  best-perf recipe) for tasks where small-object detection matters — the
+  detection branch is single-stage and keeps full spatial resolution. Trade-off:
+  the JEPA-pretrained multi-stage backbone only **partially** transfers to the
+  det branch (input embedding only). Set `False` for full JEPA transfer to both
+  heads (one shared multi-stage backbone) at the cost of downsampled detection
+  features.
+- **Reproducibility.** `SEED` (default 0) seeds Python/NumPy/torch and sets
+  cuDNN deterministic — two runs with the same seed and data should match
+  bitwise on CPU and modulo non-determinism on GPU.
 
 ---
 
