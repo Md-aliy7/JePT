@@ -163,10 +163,12 @@ The demo runs the scientifically correct SSL regime:
   best-performance recipe: multi-stage backbone for segmentation, single-stage
   (no downsampling) for detection so small objects are not downsampled away.
 
-The test-set gap between the two arms is a clean, controlled measurement of what
-self-supervised pretraining bought. The script prints per-class seg IoU,
-detection recall/precision, and the JEPA gain (Δ). `target_std` is reported to
-confirm no representation collapse during pretraining.
+The test-set gap between the two arms is a clean, controlled measurement of
+what self-supervised pretraining bought. The script prints per-class seg IoU,
+**real 3D-IoU detection mAP@{0.25, 0.5, 0.75}** (pyLitePT's
+`DetectionMetrics` — directly comparable to pyLitePT detection numbers), and
+the JEPA gain (Δ on mIoU and mAP@0.5). `target_std` is reported to confirm no
+representation collapse during pretraining.
 
 `python -m Custom.run_lowlabel_ablation` — sweeps the labelled-scene budget and
 reports JEPA-pretrained vs. from-scratch unseen-test mIoU at each point: the

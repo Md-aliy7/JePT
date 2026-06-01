@@ -15,7 +15,7 @@ from data import CustomDataset, collate_point_batch
 from models.unified import create_unified_model
 
 from .checkpoint import save_finetune_checkpoint
-from .common import to_device
+from .common import set_seed, to_device
 from .freeze import FreezeController
 
 
@@ -122,6 +122,7 @@ def finetune(cfg, max_steps_per_epoch=None, verbose=True, max_train_scenes=None)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     use_amp = bool(getattr(cfg, "USE_AMP", False)) and device.type == "cuda"
     fmt = getattr(cfg, "DATA_FORMAT", "npy")
+    set_seed(getattr(cfg, "SEED", 0))
 
     train_ds = CustomDataset(cfg.DATA_PATH, "train", cfg, fmt)
     if len(train_ds.scenes) == 0:
@@ -161,7 +162,7 @@ def finetune(cfg, max_steps_per_epoch=None, verbose=True, max_train_scenes=None)
     controller = FreezeController(model, cfg)
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
     history = {"train_seg_loss": [], "train_det_loss": [],
-               "train_total": [], "val_seg_acc": [], "val_det_recall": []}
+               "train_total": [], "val_seg_acc": [], "val_det_mAP50": []}
     os.makedirs(cfg.RESULTS_DIR, exist_ok=True)
     best_metric = -1.0
 
@@ -242,20 +243,24 @@ def finetune(cfg, max_steps_per_epoch=None, verbose=True, max_train_scenes=None)
         val_acc = _validate(model, val_loader, device, has_seg, cfg)
         history["val_seg_acc"].append(val_acc)
 
-        # detection val recall — needed so `best.pth` is NOT chosen on seg
-        # accuracy alone (seg can saturate long before detection converges)
-        val_det_recall = 0.0
+        # real 3D-IoU mAP@0.5 — the pyLitePT-compatible detection metric. Used
+        # so `best.pth` is NOT chosen on seg accuracy alone (seg can saturate
+        # long before detection converges).
+        val_det_mAP50 = 0.0
         if has_det:
             from .evaluate import evaluate_detection
-            val_det_recall = evaluate_detection(
-                model, val_loader, cfg.NUM_CLASSES_DET, device)["recall"]
-        history["val_det_recall"].append(val_det_recall)
+            class_names = list(getattr(cfg, "CLASS_NAMES", []))
+            det_class_names = class_names[:cfg.NUM_CLASSES_DET] if class_names else None
+            val_det_mAP50 = float(evaluate_detection(
+                model, val_loader, cfg.NUM_CLASSES_DET, device,
+                class_names=det_class_names).get("mAP@0.5", 0.0))
+        history["val_det_mAP50"].append(val_det_mAP50)
 
         if verbose:
             print(f"[finetune] epoch {epoch + 1}/{cfg.EPOCHS} "
                   f"seg_loss={ep_seg / n:.4f} det_loss={ep_det / n:.4f} "
                   f"total={ep_total / n:.4f} val_seg_acc={val_acc:.4f} "
-                  f"val_det_recall={val_det_recall:.4f}")
+                  f"val_det_mAP50={val_det_mAP50:.4f}")
 
         meta = {
             "variant": cfg.MODEL_VARIANT,
@@ -267,17 +272,18 @@ def finetune(cfg, max_steps_per_epoch=None, verbose=True, max_train_scenes=None)
             "grid_size": getattr(cfg, "GRID_SIZE", 0.02),
             "data_path": os.path.abspath(cfg.DATA_PATH),
         }
-        # combined selection metric: seg accuracy + detection recall (both in
-        # [0,1]). Falls back to seg-only / det-only / loss when a task is off.
+        # combined selection metric: seg accuracy + detection mAP@0.5
+        # (both in [0,1]). Falls back to seg-only / det-only / loss when a
+        # task is off. mAP@0.5 matches pyLitePT's evaluate.py unified score.
         if has_seg and has_det:
-            metric = val_acc + val_det_recall
+            metric = val_acc + val_det_mAP50
         elif has_seg:
             metric = val_acc
         elif has_det:
-            metric = val_det_recall
+            metric = val_det_mAP50
         else:
             metric = -(ep_total / n)
-        metrics = {"val_seg_acc": val_acc, "val_det_recall": val_det_recall,
+        metrics = {"val_seg_acc": val_acc, "val_det_mAP50": val_det_mAP50,
                    "selection_metric": metric}
         if metric > best_metric:
             best_metric = metric

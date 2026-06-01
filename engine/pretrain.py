@@ -13,7 +13,7 @@ from data import UnlabeledPointDataset, collate_point_batch
 from jepa import JePTModel
 
 from .checkpoint import save_pretrain_checkpoint
-from .common import to_device, warmup_cosine_scheduler, weight_decay_groups
+from .common import set_seed, to_device, warmup_cosine_scheduler, weight_decay_groups
 
 
 def calibrate_group_size(dataset, n_sample=8, tokens_per_axis=12):
@@ -49,6 +49,7 @@ def pretrain(cfg, max_steps_per_epoch=None, verbose=True):
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     use_amp = bool(getattr(cfg, "USE_AMP", True)) and device.type == "cuda"
+    set_seed(getattr(cfg, "SEED", 0))
 
     dataset = UnlabeledPointDataset(cfg.UNLABELED_DATA_PATH, cfg, split="train")
     if len(dataset) == 0:

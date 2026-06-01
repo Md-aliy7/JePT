@@ -141,7 +141,8 @@ def step_finetune(pretrained_ckpt, tag):
     loader = DataLoader(test_ds, batch_size=1, shuffle=False,
                         collate_fn=collate_point_batch)
     seg = evaluate_segmentation(model, loader, fc.NUM_CLASSES_SEG, DEVICE)
-    det = evaluate_detection(model, loader, fc.NUM_CLASSES_DET, DEVICE)
+    det = evaluate_detection(model, loader, fc.NUM_CLASSES_DET, DEVICE,
+                             class_names=SHAPE_CLASSES)
     return hist, seg, det
 
 
@@ -150,10 +151,15 @@ def _report(tag, seg, det):
     print(f"  Segmentation : acc={seg['acc']:.4f}  mIoU={seg['miou']:.4f}")
     print("    per-class IoU: " + "  ".join(
         f"{n}={v:.2f}" for n, v in zip(CLASS_NAMES, seg["per_class_iou"])))
-    print(f"  Detection    : recall={det['recall']:.4f}  "
-          f"precision={det['precision']:.4f}  ({det['n_gt']} GT objects)")
-    print("    per-class recall: " + "  ".join(
-        f"{n}={v:.2f}" for n, v in zip(SHAPE_CLASSES, det["per_class_recall"])))
+    print(f"  Detection    : mAP@0.25={det.get('mAP@0.25', 0):.4f}  "
+          f"mAP@0.5={det.get('mAP@0.5', 0):.4f}  "
+          f"mAP@0.75={det.get('mAP@0.75', 0):.4f}  "
+          f"recall@0.5={det.get('recall@0.5', 0):.4f}  "
+          f"({det.get('total_gt', 0)} GT / {det.get('total_pred', 0)} pred)")
+    if det.get("per_class_AP@0.5"):
+        print("    per-class AP@0.5: " + "  ".join(
+            f"{n}={v:.2f}" for n, v in zip(SHAPE_CLASSES,
+                                            det["per_class_AP@0.5"])))
 
 
 def main():
@@ -180,11 +186,13 @@ def main():
     _report("JEPA-pretrained -> fine-tuned", seg_pre, det_pre)
     _report("from scratch    -> fine-tuned", seg_scr, det_scr)
     print("\n" + "-" * 64)
+    d_seg = seg_pre['miou'] - seg_scr['miou']
+    d_map = det_pre.get('mAP@0.5', 0) - det_scr.get('mAP@0.5', 0)
     print(f"JEPA gain on {N_LABELED} labelled scenes:  "
           f"seg mIoU {seg_scr['miou']:.3f} -> {seg_pre['miou']:.3f} "
-          f"({seg_pre['miou'] - seg_scr['miou']:+.3f})   "
-          f"det recall {det_scr['recall']:.3f} -> {det_pre['recall']:.3f} "
-          f"({det_pre['recall'] - det_scr['recall']:+.3f})")
+          f"({d_seg:+.3f})   "
+          f"det mAP@0.5 {det_scr.get('mAP@0.5', 0):.3f} -> "
+          f"{det_pre.get('mAP@0.5', 0):.3f} ({d_map:+.3f})")
     print("-" * 64)
     print(f"\nVisualise the result:")
     print(f"  python Custom/visualize.py --checkpoint "

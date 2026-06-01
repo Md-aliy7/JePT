@@ -193,10 +193,12 @@ thresholds as live sliders.
 
 ### 4.5 Checkpoint selection
 
-`best.pth` is chosen on a **combined** metric — validation segmentation accuracy
-**plus** detection recall — so a checkpoint is not frozen the moment
-segmentation saturates while detection is still converging (the two tasks
-converge at very different rates).
+`best.pth` is chosen on a **combined** metric — validation segmentation
+accuracy **plus** detection **mAP@0.5** — so a checkpoint is not frozen the
+moment segmentation saturates while detection is still converging (the two
+tasks converge at very different rates). The detection score is real 3D-IoU
+mAP, computed by `metrics.detection_metrics.DetectionMetrics` — the same
+metric pyLitePT uses, so JePT detection numbers are directly comparable.
 
 ---
 

@@ -267,6 +267,32 @@ def test_inference(model, fc, labeled):
            len(det_keys & set(out.keys())) > 0)
 
 
+def test_dual_path(ckpt):
+    """Mechanical check that USE_DUAL_PATH_UNIFIED=True builds + forwards + EMA
+    teacher transfer works to both seg_backbone (FULL) and det_backbone
+    (PARTIAL — single-stage only shares the input embedding)."""
+    print("\n[7] dual-path mechanical check (USE_DUAL_PATH_UNIFIED=True)")
+    import Custom.finetune_config as fc
+    _override(fc, MODEL_VARIANT="nano", USE_DUAL_PATH_UNIFIED=True,
+              INPUT_CHANNELS=6, NUM_CLASSES_SEG=6, NUM_CLASSES_DET=6,
+              PRETRAINED_CKPT=None)
+    from models.unified import create_unified_model, load_pretrained_backbone
+    from data import CustomDataset, collate_point_batch
+
+    det_cfg = {"MEAN_SIZE": [[1.0, 1.0, 1.0]] * 6}
+    model = create_unified_model(fc, 6, det_cfg, device="cpu")
+    _check("dual-path: has seg_backbone", hasattr(model, "seg_backbone"))
+    _check("dual-path: has det_backbone", hasattr(model, "det_backbone"))
+
+    report = load_pretrained_backbone(model, ckpt, verbose=False)
+    seg_matched, seg_total = report.get("seg_backbone", (0, 0))
+    det_matched, _ = report.get("det_backbone", (0, 0))
+    _check("dual-path: EMA teacher loads FULL into seg_backbone",
+           seg_total > 0 and seg_matched == seg_total)
+    _check("dual-path: det_backbone gets PARTIAL transfer (embedding)",
+           det_matched > 0)
+
+
 def main():
     print("=" * 60)
     print("JePT smoke test")
@@ -281,6 +307,7 @@ def main():
     test_weight_load(ckpt)
     model, fc = test_finetune_modes(labeled, ckpt)
     test_inference(model, fc, labeled)
+    test_dual_path(ckpt)
 
     print("\n" + "=" * 60)
     print("ALL SMOKE TESTS PASSED")
