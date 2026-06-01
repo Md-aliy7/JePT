@@ -41,7 +41,7 @@ def pretrain(cfg, max_steps_per_epoch=None, verbose=True):
     """Run JEPA pretraining.
 
     Args:
-        cfg:                 pretraining config module (see configs/pretrain_config.py).
+        cfg:                 pretraining config module (see Custom/pretrain_config.py).
         max_steps_per_epoch: cap steps/epoch (used by the smoke test).
         verbose:             print per-epoch logs.
     Returns:

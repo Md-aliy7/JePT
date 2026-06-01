@@ -2,7 +2,7 @@
 
 Mirrors pyLitePT's `Custom/config.py` and adds the JEPA-specific knobs:
 `PRETRAINED_CKPT` and the freeze policy. Edit, then run:
-    python -m scripts.run_finetune
+    python -m Custom.run_finetune
 """
 
 import os

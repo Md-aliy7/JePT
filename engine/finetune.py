@@ -117,7 +117,7 @@ def finetune(cfg, max_steps_per_epoch=None, verbose=True, max_train_scenes=None)
                             simulates the low-label regime JePT targets.
     Returns:
         (model, history) — `history` has per-epoch `train_seg_loss`,
-        `train_det_loss`, `train_total`, `val_seg_acc`.
+        `train_det_loss`, `train_total`, `val_seg_acc`, `val_det_mAP50`.
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     use_amp = bool(getattr(cfg, "USE_AMP", False)) and device.type == "cuda"
@@ -240,20 +240,13 @@ def finetune(cfg, max_steps_per_epoch=None, verbose=True, max_train_scenes=None)
         history["train_det_loss"].append(ep_det / n)
         history["train_total"].append(ep_total / n)
 
-        val_acc = _validate(model, val_loader, device, has_seg, cfg)
+        # Fused single-pass val: seg accuracy + 3D-IoU mAP@0.5 in one loop.
+        # mAP@0.5 is the pyLitePT-compatible detection metric — `best.pth` is
+        # NOT chosen on seg accuracy alone (seg can saturate long before
+        # detection converges).
+        val_acc, val_det_mAP50 = _validate_combined(
+            model, val_loader, device, has_seg, has_det, cfg)
         history["val_seg_acc"].append(val_acc)
-
-        # real 3D-IoU mAP@0.5 — the pyLitePT-compatible detection metric. Used
-        # so `best.pth` is NOT chosen on seg accuracy alone (seg can saturate
-        # long before detection converges).
-        val_det_mAP50 = 0.0
-        if has_det:
-            from .evaluate import evaluate_detection
-            class_names = list(getattr(cfg, "CLASS_NAMES", []))
-            det_class_names = class_names[:cfg.NUM_CLASSES_DET] if class_names else None
-            val_det_mAP50 = float(evaluate_detection(
-                model, val_loader, cfg.NUM_CLASSES_DET, device,
-                class_names=det_class_names).get("mAP@0.5", 0.0))
         history["val_det_mAP50"].append(val_det_mAP50)
 
         if verbose:
@@ -298,19 +291,42 @@ def finetune(cfg, max_steps_per_epoch=None, verbose=True, max_train_scenes=None)
 
 
 @torch.no_grad()
-def _validate(model, val_loader, device, has_seg, cfg):
-    """Compute mean per-point segmentation accuracy on the val split."""
-    if not has_seg:
-        return 0.0
+def _validate_combined(model, val_loader, device, has_seg, has_det, cfg):
+    """One-pass val: seg point accuracy + detection mAP@0.5.
+
+    Fuses the two metrics into a single sweep over the val loader so each
+    epoch's validation runs ONE forward pass over the val split, not two.
+    Returns `(val_seg_acc, val_det_mAP50)`.
+    """
     model.eval()
     ignore = cfg.IGNORED_LABELS[0] if getattr(cfg, "IGNORED_LABELS", None) else -1
+
     correct = total = 0
+    metric = None
+    if has_det:
+        from metrics.detection_metrics import DetectionMetrics
+        from .evaluate import _det_add_batch
+        class_names = list(getattr(cfg, "CLASS_NAMES", []))
+        det_class_names = (class_names[:cfg.NUM_CLASSES_DET]
+                           if class_names else None)
+        metric = DetectionMetrics(num_classes=cfg.NUM_CLASSES_DET,
+                                  iou_thresholds=[0.25, 0.5, 0.75],
+                                  class_names=det_class_names)
+
     for batch in val_loader:
         batch = to_device(batch, device)
-        outputs = model(batch)
-        pred = outputs["seg_logits"].argmax(dim=1)
-        gt = batch["segment"].long()
-        valid = gt != ignore
-        correct += int((pred[valid] == gt[valid]).sum())
-        total += int(valid.sum())
-    return correct / max(total, 1)
+        out = model(batch)
+        if has_seg:
+            pred = out["seg_logits"].argmax(dim=1)
+            gt = batch["segment"].long()
+            valid = gt != ignore
+            correct += int((pred[valid] == gt[valid]).sum())
+            total += int(valid.sum())
+        if has_det:
+            _det_add_batch(out, batch, metric, nms_iou=0.2)
+
+    val_acc = (correct / max(total, 1)) if has_seg else 0.0
+    val_mAP50 = 0.0
+    if has_det:
+        val_mAP50 = float(metric.compute().get("mAP@0.5", 0.0))
+    return val_acc, val_mAP50

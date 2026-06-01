@@ -110,7 +110,8 @@ The original plan proposed slicing LitePT's internal voxel stages for JEPA.
 That entangles `GridPooling`, sparse-conv indice keys and re-serialisation and
 is fragile. The group-pooling design treats LitePT as a black box: it pretrains
 the **entire** encoder + decoder and transfers with zero key remapping
-(verified: 136/136 tensors).
+(verified: every backbone tensor — 136/136 for `nano`; count scales with
+variant).
 
 ### 3.5 Optimisation
 
@@ -145,9 +146,10 @@ The pretraining checkpoint stores both encoders (`student` and the EMA
 I-JEPA / DINO / data2vec convention: the moving-average encoder is a
 weight-space ensemble, smoother and a consistently better downstream
 initialisation than the gradient-trained student. Its keys (`embedding.*`,
-`enc.*`, `dec.*`) match the `LitePT` inside the downstream model exactly (136/136
-tensors, verified). Loading is shape-checked and reported (`N/N tensors loaded
-[FULL]`), so a silent no-op is impossible; the checkpoint's pretraining
+`enc.*`, `dec.*`) match the `LitePT` inside the downstream model exactly (every
+backbone tensor — 136/136 for `nano`; count scales with variant). Loading is
+shape-checked and reported (`N/N tensors loaded [FULL]`), so a silent no-op is
+impossible; the checkpoint's pretraining
 `variant`/`grid_size`/`input_channels` are printed so a stage mismatch is
 caught. The seg/det heads stay randomly initialised and are trained fresh.
 

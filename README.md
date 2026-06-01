@@ -62,7 +62,8 @@ approved plan, which proposed slicing LitePT's internal voxel stages — that
 proved fragile (it entangles GridPooling, sparse-conv indice keys and
 re-serialization). The black-box approach pretrains the **entire** backbone and
 the resulting encoder state-dict drops into the downstream model with **zero
-key remapping** (verified: 136/136 tensors, exact key match). Downstream
+key remapping** (verified: every backbone tensor matches — 136/136 for
+`nano`, the count scales with variant). Downstream
 transfer uses the **EMA teacher** (target encoder), per the I-JEPA / DINO
 convention — a smoother, better downstream initialisation than the student.
 
@@ -185,7 +186,8 @@ Being explicit so nothing here is over-read:
 
 - **Verified:** the pipeline is mechanically correct — JEPA pretraining runs,
   the loss decreases, representations do not collapse (`target_std` stays
-  ≈0.5), pretrained weights transfer (136/136 tensors), and the pretrained
+  ≈0.5), pretrained weights transfer (every backbone tensor matches — 136/136
+  for `nano`, scales with variant), and the pretrained
   backbone beats from-scratch training in the low-label regime. All numbers
   above are from real runs in this repo, not estimates.
 - **Not yet verified:** representation quality on *real-world semantic*
@@ -215,8 +217,9 @@ scene navigator, detection toggle, per-class IoU legend):
   above. Real-scan semantic validation is future work.
 - **Detection — single-path vs dual-path trade-off** (pick consciously):
   - `USE_DUAL_PATH_UNIFIED=False` — one multi-stage backbone shared by seg + det;
-    the JEPA-pretrained backbone transfers **fully** (136/136 tensors) to both
-    tasks. Detection sees downsampled features (worse for small objects).
+    the JEPA-pretrained backbone transfers **fully** (every backbone tensor —
+    136/136 for `nano`) to both tasks. Detection sees downsampled features
+    (worse for small objects).
   - `USE_DUAL_PATH_UNIFIED=True` (pyLitePT's "best performance" recipe — used
     by `run_shapes3d_demo`) — multi-stage backbone for seg, **single-stage**
     backbone for det (no downsampling, high-resolution features → better small-
