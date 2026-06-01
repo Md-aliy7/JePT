@@ -235,16 +235,21 @@ scene navigator, detection toggle, per-class IoU legend):
 
 ## License & attribution
 
-JePT is released under the [MIT License](LICENSE).
+**JePT's own code is released under the [MIT License](LICENSE)**, with one
+exception: the bundled `labelCloud/` subdirectory is a modified copy of an
+upstream GPL-v3 project and **remains under GPL v3** (see
+[labelCloud/LICENSE](labelCloud/LICENSE)). Because GPL is copyleft, anyone who
+**distributes the JePT repository as a whole** must comply with the GPL terms
+for the bundled `labelCloud/` subtree. Users who only want the SSL pipeline
+without the annotator can use JePT's own folders (`jepa/`, `engine/`, `data/`,
+`models/`, `Custom/`, …) under MIT alone.
 
-The repository bundles and builds on several open-source projects, all under
-permissive licenses (MIT). Full credit:
-
-| Project | Role in JePT | Authors / copyright |
-|---|---|---|
-| [**LitePT**](https://github.com/prs-eth/LitePT) ([paper](https://arxiv.org/abs/2512.13689)) | Backbone — reused verbatim in `models/litept/` | Yuanwen Yue, Damien Robert, Jianyuan Wang, Sunghwan Hong, Jan Dirk Wegner, Christian Rupprecht, Konrad Schindler (ETH Zurich / Oxford / UZH). MIT, © Photogrammetry and Remote Sensing Lab. |
-| **pyLitePT** | Detection head, data loader, post-processing, CPU backend — reused in `pcdet_lite/`, `models/detection.py`, `models/modules.py`, `backend_cpu/`, `libs/`, `metrics/`, `utils/`, `hybrid_backend.py` | MIT |
-| **Point-JEPA** ([paper](https://arxiv.org/abs/2404.16432)) | Self-supervised recipe for point clouds; `jepa/ema.py` adapted from the reference implementation | Project authors (paper): Ayumu Saito, Prachi Kudeshia, Jiju Poovvancheri. Reference-implementation code MIT. |
+| Project | Role in JePT | Authors / copyright | License |
+|---|---|---|---|
+| [**LitePT**](https://github.com/prs-eth/LitePT) ([paper](https://arxiv.org/abs/2512.13689)) | Backbone — reused verbatim in `models/litept/` | Yue, Robert, Wang, Hong, Wegner, Rupprecht, Schindler (ETH Zurich / Oxford / UZH) | MIT |
+| **pyLitePT** | Detection head, data loader, post-processing, CPU backend — reused in `pcdet_lite/`, `models/detection.py`, `models/modules.py`, `backend_cpu/`, `libs/`, `metrics/`, `utils/`, `hybrid_backend.py` | Photogrammetry and Remote Sensing Lab | MIT |
+| **Point-JEPA** ([paper](https://arxiv.org/abs/2404.16432)) | Self-supervised recipe for point clouds; `jepa/ema.py` adapted from the reference implementation | Paper: Ayumu Saito, Prachi Kudeshia, Jiju Poovvancheri | MIT (reference implementation) |
+| [**labelCloud**](https://github.com/ch-sa/labelCloud) | 3D annotation GUI bundled at `labelCloud/`, modified to export JePT's NPY format | Original author: Christoph Sager. JePT modifications by Md-aliy7 | **GPL v3** (subtree only) |
 
 Scientific references (algorithm design): [I-JEPA](https://arxiv.org/abs/2301.08243),
 [DINOv3](https://ai.meta.com/dinov3), [Sonata](https://arxiv.org/abs/2503.16429),

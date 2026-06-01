@@ -22,8 +22,12 @@ SOFTWARE.
 
 ---
 
-This repository bundles or builds on several open-source projects, each used
-under their original permissive licenses (all MIT). Full attributions:
+This repository bundles or builds on several open-source projects. JePT's own
+code (everything outside `labelCloud/`) is MIT. The bundled `labelCloud/`
+subdirectory is a modified derivative work of an upstream GPL-v3 project and
+**remains under GPL v3** (see `labelCloud/LICENSE`). Distributing the
+combined repository as a whole therefore requires complying with the GPL
+terms for the `labelCloud/` subtree. Full attributions follow:
 
 * LitePT — paper: Yue, Robert, Wang, Hong, Wegner, Rupprecht, Schindler
   (ETH Zurich / Oxford / UZH). "LitePT: Lighter Yet Stronger Point Transformer",
@@ -40,6 +44,7 @@ under their original permissive licenses (all MIT). Full attributions:
   Learning on Point Cloud", arXiv:2404.16432. Reference-implementation code
   MIT, © 2023 Karim Abou Zeid. `jepa/ema.py` adapted from that implementation.
 
-* labelCloud — original work by Christoph Sager
-  (github.com/ch-sa/labelCloud). Bundled under `labelCloud/` and re-released
-  under MIT for this repository (see `labelCloud/LICENSE`).
+* labelCloud — original work © 2020-2023 Christoph Sager
+  (github.com/ch-sa/labelCloud), GPL v3. Bundled under `labelCloud/` with
+  modifications by Md-aliy7 (JePT data-format integration). The bundled
+  `labelCloud/` subtree remains under GPL v3 — see `labelCloud/LICENSE`.
